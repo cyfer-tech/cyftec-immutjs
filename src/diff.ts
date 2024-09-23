@@ -1,12 +1,12 @@
-import { areValuesEqual } from "./equal.ts";
-import { newVal } from "./misc.ts";
+import { areValuesEqual } from "./equal";
+import { newVal } from "./misc";
 import type {
   ArrItemOperation,
   IndexedArr,
   IndexedItem,
   ItemOperation,
   PartiallyIndexedItem,
-} from "./types.ts";
+} from "./types";
 
 /**
  * V1 - need to be deprecated when V2 is released
