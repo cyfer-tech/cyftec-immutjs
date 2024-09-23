@@ -1,6 +1,6 @@
 {
-  "name": "@cyftec/jsmut",
-  "version": "1.2.0",
+  "name": "@cyftec/immutjs",
+  "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cyfer-tech/jsmut.git"
+    "url": "git+https://github.com/cyfer-tech/immutjs.git"
   },
   "keywords": [],
   "author": "Chandan Kumar (Cyfer Tech)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/cyfer-tech/jsmut/issues"
+    "url": "https://github.com/cyfer-tech/immutjs/issues"
   },
-  "homepage": "https://github.com/cyfer-tech/jsmut#readme",
+  "homepage": "https://github.com/cyfer-tech/immutjs#readme",
   "devDependencies": {
     "tsup": "^8.2.4",
     "typescript": "^5.6.2"

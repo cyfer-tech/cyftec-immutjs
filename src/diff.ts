@@ -1,8 +1,15 @@
 import { areValuesEqual } from "./equal.ts";
 import { newVal } from "./misc.ts";
-import type { ArrItemOperation, IndexedArr } from "./types.ts";
+import type {
+  ArrItemOperation,
+  IndexedArr,
+  IndexedItem,
+  ItemOperation,
+  PartiallyIndexedItem,
+} from "./types.ts";
 
 /**
+ * V1 - need to be deprecated when V2 is released
  * This method calculates and returns the mutations in an array if any
  * @param oldArray old value of array going to be mutated
  * @param newArray new mutated value of the old array
@@ -56,4 +63,53 @@ export const getArrUpdateOperations = (
   );
 
   return operations.sort((a, b) => a.value._index - b.value._index);
+};
+
+/**
+ * V2
+ * This method calculates and returns the mutations in an array if any
+ * @param oldArray old value of array going to be mutated
+ * @param newArray new mutated value of the old array
+ * @returns the list mutations in the old array
+ */
+
+export const getArrUpdateOps = <T>(
+  oldArray: IndexedItem<T>[],
+  newArray: PartiallyIndexedItem<T>[]
+): ItemOperation<T>[] => {
+  const oldArr = newVal(oldArray);
+  const newArr = newVal(newArray);
+  const operations: ItemOperation<T>[] = [];
+
+  newArr.forEach((newItem, newIndex) => {
+    const foundOldItem = oldArr.some((oldItem, oldIndex) => {
+      if (newItem.index === oldItem.index) {
+        operations.push({
+          type: areValuesEqual(oldItem.value, newItem.value)
+            ? "idle"
+            : "update",
+          value: { ...newItem, index: newIndex },
+          oldIndex: oldItem.index,
+        });
+        oldArr.splice(oldIndex, 1);
+        return true;
+      }
+      return false;
+    });
+    if (!foundOldItem)
+      operations.push({
+        type: "add",
+        value: { ...newItem, index: newIndex },
+      });
+  });
+
+  oldArr.forEach((oldItem, oldIndex) =>
+    operations.push({
+      type: "delete",
+      value: { ...oldItem, index: 0 - oldArr.length + oldIndex },
+      oldIndex: oldItem.index,
+    })
+  );
+
+  return operations.sort((a, b) => a.value.index - b.value.index);
 };
