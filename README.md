@@ -1,1 +1,1 @@
-# jsmut
+# immutjs
