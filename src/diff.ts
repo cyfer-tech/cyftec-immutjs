@@ -8,6 +8,7 @@ import type {
   ItemOperation,
   MutationType,
   PartiallyIndexedItem,
+  StringKeyObject,
 } from "./types";
 
 /**
@@ -144,8 +145,9 @@ export const getArrayMutations = <T extends object>(
           ? "idle"
           : "shuffle"
         : idKey &&
-          (oldIndexedItem.value as { [key: string]: any })[idKey] ===
-            (newIndexedItem.value as { [key: string]: any })[idKey]
+          (oldIndexedItem.value as StringKeyObject)[idKey] !== undefined &&
+          (oldIndexedItem.value as StringKeyObject)[idKey] ===
+            (newIndexedItem.value as StringKeyObject)[idKey]
         ? "update"
         : "add";
 
