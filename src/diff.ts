@@ -1,10 +1,12 @@
 import { areValuesEqual } from "./equal";
-import { newVal } from "./misc";
+import { indexedArray, newVal } from "./misc";
 import type {
+  ArrItemMutation,
   ArrItemOperation,
   IndexedArr,
   IndexedItem,
   ItemOperation,
+  MutationType,
   PartiallyIndexedItem,
 } from "./types";
 
@@ -20,13 +22,13 @@ export const getArrUpdateOperations = (
   oldArray: IndexedArr<any>,
   newArray: IndexedArr<any>
 ): ArrItemOperation<any>[] => {
-  const oldArr = newVal(oldArray);
-  const newArr = newVal(newArray);
+  const oldIndexedArr = newVal(oldArray);
+  const newIndexedArr = newVal(newArray);
   const operations: ArrItemOperation<any>[] = [];
 
-  newArr.forEach((newItem, newIndex) => {
+  newIndexedArr.forEach((newItem, newIndex) => {
     const newItemValue = { ...newItem, _index: undefined };
-    const foundMatch = oldArr.some((oldItem, oldIndex) => {
+    const foundMatch = oldIndexedArr.some((oldItem, oldIndex) => {
       const oldItemValue = { ...oldItem, _index: undefined };
       if (newItem._index === oldItem._index) {
         if (areValuesEqual(oldItemValue, newItemValue)) {
@@ -42,7 +44,7 @@ export const getArrUpdateOperations = (
             oldIndex: oldItem._index,
           });
         }
-        oldArr.splice(oldIndex, 1);
+        oldIndexedArr.splice(oldIndex, 1);
         return true;
       }
       return false;
@@ -54,10 +56,10 @@ export const getArrUpdateOperations = (
       });
   });
 
-  oldArr.forEach((oldItem, oldIndex) =>
+  oldIndexedArr.forEach((oldItem, oldIndex) =>
     operations.push({
       type: "delete",
-      value: { ...oldItem, _index: 0 - oldArr.length + oldIndex },
+      value: { ...oldItem, _index: 0 - oldIndexedArr.length + oldIndex },
       oldIndex: oldItem._index,
     })
   );
@@ -77,12 +79,12 @@ export const getArrUpdateOps = <T>(
   oldArray: IndexedItem<T>[],
   newArray: PartiallyIndexedItem<T>[]
 ): ItemOperation<T>[] => {
-  const oldArr = newVal(oldArray);
-  const newArr = newVal(newArray);
+  const oldIndexedArr = newVal(oldArray);
+  const newIndexedArr = newVal(newArray);
   const operations: ItemOperation<T>[] = [];
 
-  newArr.forEach((newItem, newIndex) => {
-    const foundOldItem = oldArr.some((oldItem, oldIndex) => {
+  newIndexedArr.forEach((newItem, newIndex) => {
+    const foundOldMatch = oldIndexedArr.some((oldItem, oldIndex) => {
       if (newItem.index === oldItem.index) {
         operations.push({
           type: areValuesEqual(oldItem.value, newItem.value)
@@ -91,25 +93,75 @@ export const getArrUpdateOps = <T>(
           value: { ...newItem, index: newIndex },
           oldIndex: oldItem.index,
         });
-        oldArr.splice(oldIndex, 1);
+        oldIndexedArr.splice(oldIndex, 1);
         return true;
       }
       return false;
     });
-    if (!foundOldItem)
+    if (!foundOldMatch)
       operations.push({
         type: "add",
         value: { ...newItem, index: newIndex },
       });
   });
 
-  oldArr.forEach((oldItem, oldIndex) =>
+  oldIndexedArr.forEach((oldItem, oldIndex) =>
     operations.push({
       type: "delete",
-      value: { ...oldItem, index: 0 - oldArr.length + oldIndex },
+      value: { ...oldItem, index: 0 - oldIndexedArr.length + oldIndex },
       oldIndex: oldItem.index,
     })
   );
 
   return operations.sort((a, b) => a.value.index - b.value.index);
+};
+
+/**
+ * V3
+ * This method calculates and returns the mutations in an array if any
+ * @param oldDsitinctItemsArray old array with non-duplicate items
+ * @param newDsitinctItemsArray new (updated) array with non-duplicate items
+ * @returns a list which is a map of [newDsitinctItemsArray] to mutation data of each item
+ */
+
+export const getArrayMutations = <T extends object>(
+  oldDsitinctItemsArray: T[],
+  newDsitinctItemsArray: T[],
+  idKey?: string
+): ArrItemMutation<T>[] => {
+  const indexKey = "index";
+  const oldIndexedArr = indexedArray(newVal(oldDsitinctItemsArray), indexKey);
+  const newIndexedArr = indexedArray(newVal(newDsitinctItemsArray), indexKey);
+
+  return newIndexedArr.map((newIndexedItem) => {
+    let type: MutationType = "add";
+    let oldIndex = -1;
+    const value = newIndexedItem.value;
+
+    oldIndexedArr.some((oldIndexedItem, i) => {
+      type = areValuesEqual(oldIndexedItem.value, newIndexedItem.value)
+        ? oldIndexedItem[indexKey] === newIndexedItem[indexKey]
+          ? "idle"
+          : "shuffle"
+        : idKey &&
+          (oldIndexedItem.value as { [key: string]: any })[idKey] ===
+            (newIndexedItem.value as { [key: string]: any })[idKey]
+        ? "update"
+        : "add";
+
+      if (type !== "add") {
+        oldIndex = oldIndexedItem[indexKey] as number;
+        oldIndexedArr.splice(i, 1);
+        return true;
+      }
+
+      return false;
+    });
+
+    return {
+      type,
+      oldIndex,
+      value,
+    };
+  });
 };

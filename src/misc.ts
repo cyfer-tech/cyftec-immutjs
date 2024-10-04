@@ -80,3 +80,15 @@ export const newVal = <T>(oldVal: T): T => {
   const value = oldVal;
   return value as T;
 };
+
+/**
+ *
+ * @param list of items
+ * @param uniqueKey index key name
+ * @returns indexed items list
+ */
+export const indexedArray = <T>(list: T[], uniqueKey = "index") =>
+  list.map((item, i) => ({
+    [uniqueKey]: i,
+    value: item,
+  }));

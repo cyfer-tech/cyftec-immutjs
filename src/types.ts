@@ -28,3 +28,13 @@ export type ItemOperation<T> = {
   value: IndexedItem<T>;
   oldIndex?: number;
 };
+
+/**
+ * V3 of array update method types
+ */
+export type MutationType = "add" | "update" | "idle" | "shuffle";
+export type ArrItemMutation<T> = {
+  type: MutationType;
+  value: T;
+  oldIndex: number;
+};
