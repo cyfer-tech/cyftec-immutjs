@@ -32,15 +32,6 @@ export const isPlainObject = (value: any): boolean => {
  * @returns a new immuatble copy of input value
  */
 export const immut = <T>(value: T): T => {
-  if (isPlainObject(value)) {
-    const copiedObj = { ...value } as object;
-    const newObj: object = {};
-    Object.keys(copiedObj).forEach((key) => {
-      (newObj as any)[key] = immut((copiedObj as any)[key]);
-    });
-    return Object.freeze(newObj) as T;
-  }
-
   if (Array.isArray(value)) {
     const copiedArr = [...value];
     const newArr: any[] = [];
@@ -48,6 +39,15 @@ export const immut = <T>(value: T): T => {
       newArr.push(immut(item));
     });
     return newArr as T;
+  }
+
+  if (isPlainObject(value)) {
+    const copiedObj = { ...value } as object;
+    const newObj: object = {};
+    Object.keys(copiedObj).forEach((key) => {
+      (newObj as any)[key] = immut((copiedObj as any)[key]);
+    });
+    return Object.freeze(newObj) as T;
   }
 
   return value;
@@ -59,15 +59,6 @@ export const immut = <T>(value: T): T => {
  * @returns a new (non-mutated) copy of the (input) oldValue
  */
 export const newVal = <T>(oldVal: T): T => {
-  if (isPlainObject(oldVal)) {
-    const copiedObj = { ...oldVal } as Record<string, any>;
-    const newObj: Record<string, any> = {};
-    Object.keys(copiedObj).forEach((key) => {
-      newObj[key] = newVal(copiedObj[key]);
-    });
-    return newObj as T;
-  }
-
   if (Array.isArray(oldVal)) {
     const copiedArr = [...oldVal];
     const newArr: any[] = [];
@@ -75,6 +66,15 @@ export const newVal = <T>(oldVal: T): T => {
       newArr.push(newVal(item));
     });
     return newArr as T;
+  }
+
+  if (isPlainObject(oldVal)) {
+    const copiedObj = { ...oldVal } as Record<string, any>;
+    const newObj: Record<string, any> = {};
+    Object.keys(copiedObj).forEach((key) => {
+      newObj[key] = newVal(copiedObj[key]);
+    });
+    return newObj as T;
   }
 
   const value = oldVal;
